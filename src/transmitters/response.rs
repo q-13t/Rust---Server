@@ -106,8 +106,26 @@ impl Response {
             .map(|c| c.to_string())
             .collect::<Vec<_>>()
             .join("\n");
-        let headers_str = self
-            .headers
+
+        let mut pre_response_headers = self.headers.clone();
+        pre_response_headers.push(Header::new(
+            "Access-Control-Allow-Origin".to_string(),
+            "*".to_string(),
+        ));
+        pre_response_headers.push(Header::new(
+            "Access-Control-Allow-Credentials".to_string(),
+            "true".to_string(),
+        ));
+        pre_response_headers.push(Header::new(
+            "Access-Control-Allow-Methods".to_string(),
+            "POST, GET, OPTIONS, PUT, DELETE, PATCH".to_string(),
+        ));
+        pre_response_headers.push(Header::new(
+            "Access-Control-Allow-Headers".to_string(),
+            "Content-Type, Authorization".to_string(),
+        ));
+
+        let headers_str = pre_response_headers
             .iter()
             .map(|c| c.to_string())
             .collect::<Vec<_>>()
