@@ -1,0 +1,11 @@
+[package]
+name = "Rust-Server"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = "0.4.38"
+route_macro = {path = "route_macro"}
+route_macro_def = {path="route_macro_def"}
+lazy_static = "1.5.0"
+regex = "1.3.9"
