@@ -23,7 +23,6 @@ use transmitters::request::*;
 use transmitters::response::*;
 use utils::logger::*;
 
-extern crate route_macro;
 extern crate route_macro_def;
 
 const LOG_LEVEL: LogLevel = LogLevel::Info;
