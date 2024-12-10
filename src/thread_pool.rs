@@ -3,6 +3,8 @@ use std::{
     thread,
 };
 
+use crate::{server::get_log_level, Logger};
+
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,
@@ -53,17 +55,20 @@ type Job = Box<dyn FnOnce() + Send + 'static>;
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
+        let logger = Logger::new("THREAD POOL", get_log_level());
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
 
             match message {
                 Ok(job) => {
-                    println!("Worker {id} got a job; executing.");
-
+                    logger.info(&["Worker", &id.to_string(), "started"]);
                     job();
                 }
-                Err(_) => {
-                    println!("Worker {id} disconnected; shutting down.");
+                Err(err) => {
+                    logger.error(
+                        err.to_string().as_str(),
+                        &["Worker", &id.to_string(), "stopped"],
+                    );
                     break;
                 }
             }

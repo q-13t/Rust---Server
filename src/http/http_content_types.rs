@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use regex::Regex;
 
-use crate::utils::logger::{LogLevel, Logger};
+use crate::{server::get_log_level, utils::logger::Logger};
 
 const CONTENT_TYPES: &[(u16, &str)] = &[
     (0, "text/html; charset=utf-8"),
@@ -188,17 +188,18 @@ pub fn get_type(value: ContentType) -> String {
         .unwrap()
         .to_string()
 }
-const LOGGER: Logger = Logger {
-    c_name: "http_content_types",
-    level: LogLevel::Debug,
-};
+
 impl ContentType {
     ///
     /// Parse the file name to get the content type
     /// <br>
     /// value: the file name may be the full path
     pub fn parse_file_name(value: &str) -> ContentType {
-        LOGGER.debug(&["parse_file_name", value]);
+        let logger: Logger = Logger {
+            c_name: "http_content_types",
+            level: get_log_level(),
+        };
+        logger.debug(&["parse_file_name", value]);
         let regex = Regex::new(r"(\..*)$").unwrap();
         let f_type = regex.captures(value).unwrap().get(1).unwrap().as_str();
 
