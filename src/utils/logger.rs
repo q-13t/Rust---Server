@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use std::time::SystemTime;
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(PartialEq, PartialOrd, Clone, Debug)]
 pub enum LogLevel {
     Error = 0,
     Info = 1,
@@ -12,6 +12,7 @@ pub struct Logger {
     pub c_name: &'static str,
     pub level: LogLevel,
 }
+
 #[allow(unused)]
 impl Logger {
     pub fn new(c_name: &'static str, level: LogLevel) -> Logger {

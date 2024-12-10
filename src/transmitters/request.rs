@@ -1,5 +1,6 @@
 use crate::http::{http_cookies::*, http_headers::*, http_methods::*};
-use crate::utils::logger::{LogLevel, Logger};
+use crate::server;
+use crate::utils::logger::Logger;
 use std::fmt::Display;
 
 pub struct Request {
@@ -10,10 +11,7 @@ pub struct Request {
     pub cookies: Vec<Cookie>,
     pub data: String,
 }
-pub const LOGGER: Logger = Logger {
-    c_name: "Request",
-    level: LogLevel::Debug,
-};
+
 #[allow(unused)]
 impl Request {
     pub fn new(
@@ -34,25 +32,25 @@ impl Request {
         }
     }
 
-    // TODO: Write an http parser
     pub fn parse(payload: String) -> Request {
-        LOGGER.debug(&["split", payload.as_str()]);
+        let logger: Logger = Logger {
+            c_name: "Request",
+            level: server::get_log_level(),
+        };
+        logger.debug(&["split", payload.as_str()]);
         let mut lines = payload.lines();
 
-        // Parse the request line (method, path, HTTP version)
         let request_line = lines.next().unwrap_or_default();
         let mut parts = request_line.split_whitespace();
         let method = HttpMethod::get_method(parts.next().unwrap_or_default());
         let path = parts.next().unwrap_or_default().to_string();
 
-        // Extract path variables (optional)
         let path_variables = path
             .split('/')
             .filter(|segment| !segment.is_empty() && segment.starts_with(':'))
             .map(|segment| segment.trim_start_matches(':').to_string())
             .collect();
 
-        // Parse headers
         let mut headers = Vec::new();
         let mut cookies = Vec::new();
         let mut is_header_section = true;
