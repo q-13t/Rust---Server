@@ -5,6 +5,7 @@ pub mod thread_pool;
 pub mod transmitters;
 pub mod utils;
 
+use http::http_codes::get_status_line;
 use http::http_codes::StatusCode;
 use http::http_content_types::*;
 use http::http_methods::*;
@@ -12,6 +13,10 @@ use http::http_methods::*;
 use route::Route;
 
 use route_macro_def::add_routes;
+use server::PreRequest;
+use server::PreRequestHandler;
+use server::PreResponse;
+use server::PreResponseHandler;
 
 use std::{fs, thread};
 use transmitters::request::*;
@@ -21,9 +26,11 @@ use utils::logger::*;
 extern crate route_macro;
 extern crate route_macro_def;
 
+const LOG_LEVEL: LogLevel = LogLevel::Info;
+
 const LOGGER: Logger = Logger {
     c_name: "Main",
-    level: LogLevel::Debug,
+    level: LOG_LEVEL,
 };
 
 fn appliances(data: Request) -> Response {
@@ -82,6 +89,25 @@ fn options(_: Request) -> Response {
     )
 }
 
+#[allow(unused)]
+impl PreRequest for PreRequestHandler {
+    fn call(&self, data: String, request: Request) -> Request {
+        LOGGER.info(&["Pre-request called for ", request.path.as_str()]);
+        request
+    }
+}
+
+#[allow(unused)]
+impl PreResponse for PreResponseHandler {
+    fn call(&self, data: String, response: Response) -> Response {
+        LOGGER.info(&[
+            "Pre-response called for ",
+            get_status_line(response.status).as_str(),
+        ]);
+        response
+    }
+}
+
 fn main() {
     let routes = add_routes!(
         Route::new("/", index, HttpMethod::GET),
@@ -91,5 +117,16 @@ fn main() {
         Route::new("/options", options, HttpMethod::OPTIONS)
     );
 
-    server::start(routes, "127.0.0.1", 8000, 10, LogLevel::Info);
+    let my_pre_request = PreRequestHandler;
+    let my_pre_response = PreResponseHandler;
+
+    server::start(
+        routes,
+        "127.0.0.1",
+        8000,
+        10,
+        LOG_LEVEL,
+        Some(my_pre_request),
+        Some(my_pre_response),
+    );
 }

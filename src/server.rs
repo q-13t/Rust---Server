@@ -11,7 +11,7 @@ use crate::{
     route::Route,
     thread_pool::ThreadPool,
     utils::logger::Logger,
-    LogLevel, Request,
+    LogLevel, Request, Response,
 };
 use std::sync::RwLock;
 
@@ -36,6 +36,8 @@ pub fn start(
     mut port: u32,
     threads: usize,
     log_level: LogLevel,
+    pre_request: Option<PreRequestHandler>,
+    pre_response: Option<PreResponseHandler>,
 ) {
     set_log_level(log_level);
     let logger: Logger = Logger {
@@ -58,9 +60,13 @@ pub fn start(
         ("http://".to_string() + &listener.local_addr().unwrap().to_string()).as_str(),
     ]);
     for stream in listener.incoming() {
+        let pre_request_clone = pre_request.clone();
+        let pre_response_clone = pre_response.clone();
         match stream {
             Ok(stream) => {
-                thread_pool.execute(|| handle_connection(stream));
+                thread_pool.execute(|| {
+                    handle_connection(stream, pre_request_clone, pre_response_clone);
+                });
             }
             Err(e) => {
                 logger.error(e.to_string().as_str(), &["Unable to connect to client"]);
@@ -68,12 +74,22 @@ pub fn start(
         }
     }
 }
-fn submit(mut stream: &TcpStream, route: &Route, data: Request) -> Result<(), std::io::Error> {
+fn submit(
+    mut stream: &TcpStream,
+    route: &Route,
+    data: Request,
+    pre_response: Option<PreResponseHandler>,
+) -> Result<(), std::io::Error> {
     let logger: Logger = Logger {
         c_name: "SERVER",
         level: get_log_level(),
     };
-    let resp = route.call(data).prepare();
+    let resp = route.call(data);
+    let response = match pre_response {
+        Some(function) => function.call(stream.peer_addr().unwrap().to_string(), resp),
+        None => resp,
+    };
+    let resp = response.prepare();
     logger.debug(&["Sending response", resp.as_str()]);
     match stream.write_all(resp.as_bytes()) {
         Ok(_) => Ok(()),
@@ -84,20 +100,30 @@ fn submit(mut stream: &TcpStream, route: &Route, data: Request) -> Result<(), st
     }
 }
 
-fn handle_connection(mut stream: TcpStream) {
+fn handle_connection(
+    mut stream: TcpStream,
+    pre_request: Option<PreRequestHandler>,
+    pre_response: Option<PreResponseHandler>,
+) {
     let logger: Logger = Logger {
         c_name: "SERVER",
         level: get_log_level(),
     };
-    let buf_reader = BufReader::new(&mut stream);
+    let buf_reader_string = BufReader::new(&mut stream)
+        .lines()
+        .map(|result| result.unwrap())
+        .take_while(|line| !line.is_empty())
+        .collect::<String>();
 
-    let request = Request::parse(
-        buf_reader
-            .lines()
-            .map(|result| result.unwrap())
-            .take_while(|line| !line.is_empty())
-            .collect::<String>(),
-    );
+    // let request = Request::parse(buf_reader_string);
+
+    let request = match pre_request {
+        Some(function) => function.call(
+            stream.peer_addr().unwrap().to_string(),
+            Request::parse(buf_reader_string),
+        ),
+        None => Request::parse(buf_reader_string),
+    };
 
     let routes = ROUTES.read().unwrap();
     let appliances_regex = Regex::new(r"(.css|.html|.js|.ico)$").unwrap();
@@ -105,7 +131,7 @@ fn handle_connection(mut stream: TcpStream) {
     let mut handled_successfully = false;
 
     if request.method == HttpMethod::GET && appliances_regex.is_match(request.path.as_str()) {
-        match submit(&stream, &routes[1], request) {
+        match submit(&stream, &routes[1], request, pre_response.clone()) {
             Ok(_) => {
                 handled_successfully = true;
             }
@@ -120,7 +146,7 @@ fn handle_connection(mut stream: TcpStream) {
         let mut found = false;
         for route in routes.iter() {
             if route.method == request.method && route.path == request.path {
-                match submit(&stream, route, request) {
+                match submit(&stream, route, request, pre_response.clone()) {
                     Ok(_) => {
                         handled_successfully = true;
                         found = true;
@@ -155,4 +181,19 @@ fn handle_connection(mut stream: TcpStream) {
     stream.flush().unwrap();
     stream.shutdown(std::net::Shutdown::Both).unwrap();
     return;
+}
+
+#[derive(Clone)]
+pub struct PreRequestHandler;
+#[derive(Clone)]
+pub struct PreResponseHandler;
+
+#[allow(unused)]
+pub trait PreRequest: Send + Sync {
+    fn call(&self, data: String, request: Request) -> Request;
+}
+
+#[allow(unused)]
+pub trait PreResponse: Send + Sync {
+    fn call(&self, data: String, request: Response) -> Response;
 }
