@@ -37,9 +37,9 @@ impl ThreadPool {
 impl Drop for ThreadPool {
     fn drop(&mut self) {
         drop(self.sender.take());
-
+        let logger = Logger::new("WORKER", get_log_level());
         for worker in &mut self.workers {
-            println!("Shutting down worker {}", worker.id);
+            logger.info(&["Worker", &worker.id.to_string(), "started"]);
             if let Some(thread) = worker.thread.take() {
                 thread.join().unwrap();
             }
