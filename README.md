@@ -144,5 +144,22 @@ fn main() {
     );
 }
 ```
-
+```cli
+[ 10-12-2024 10:19:09:438        INFO    [SERVER]       ]: Server started on http://127.0.0.1:8000
+[ 10-12-2024 10:19:12:250        INFO    [POOL] ]: Worker 1 started
+[ 10-12-2024 10:19:12:259        INFO    [Main] ]: Pre-request called for  /
+[ 10-12-2024 10:19:12:269        INFO    [Main] ]: Pre-response called for  HTTP/1.1 200 OK
+[ 10-12-2024 10:19:12:269        INFO    [SERVER]       ]: Response sent 127.0.0.1:58743   
+[ 10-12-2024 10:19:12:489        INFO    [POOL] ]: Worker 4 started
+[ 10-12-2024 10:19:12:493        INFO    [POOL] ]: Worker 9 started
+[ 10-12-2024 10:19:12:494        INFO    [Main] ]: Pre-request called for  /index.css      
+[ 10-12-2024 10:19:12:494        INFO    [Main] ]: Pre-request called for  /index.js       
+[ 10-12-2024 10:19:12:501        INFO    [Main] ]: Pre-response called for  HTTP/1.1 200 OK
+[ 10-12-2024 10:19:12:502        INFO    [Main] ]: Pre-response called for  HTTP/1.1 200 OK
+[ 10-12-2024 10:19:14:288        INFO    [POOL] ]: Worker 6 started
+[ 10-12-2024 10:19:14:288        INFO    [Main] ]: Pre-request called for  /sleep
+[ 10-12-2024 10:19:14:527        INFO    [POOL] ]: Worker 2 started
+[ 10-12-2024 10:19:19:293        INFO    [Main] ]: Pre-response called for  HTTP/1.1 200 OK
+[ 10-12-2024 10:19:19:293        INFO    [SERVER]       ]: Response sent 127.0.0.1:58774
+```
 # Any suggestions or contributions are welcome
