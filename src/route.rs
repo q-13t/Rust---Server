@@ -2,6 +2,32 @@ use crate::{HttpMethod, Request, Response};
 
 use std::fmt::Display;
 
+/// Represents a route
+///
+/// # Arguments
+/// * `path` - The path of the route
+/// * `handler` - The handler of the route
+/// * `method` - The method of the route
+///
+/// # Example
+/// ```
+/// use http::http_methods::HttpMethod;
+/// use http::request::Request;
+/// use http::response::Response;
+/// use route::Route;
+///
+/// let route = Route::new("/", index, HttpMethod::GET);
+///
+/// fn index(request: Request) -> Response {
+///     Response::new(
+///         StatusCode::Ok,
+///         ContentType::TextHtmlCharsetUtf8,
+///         Vec::new(),
+///         Vec::new(),
+///         fs::read_to_string("./static/index.html").unwrap(),
+///     )
+/// }
+/// ```
 pub struct Route {
     pub path: String,
     pub handler: Box<dyn Fn(Request) -> Response + Send + Sync + 'static>,

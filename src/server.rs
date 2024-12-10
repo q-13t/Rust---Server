@@ -17,10 +17,15 @@ use std::sync::RwLock;
 
 static LOG_LEVEL: OnceLock<LogLevel> = OnceLock::new();
 
+/// Sets the log level
+/// # Arguments
+/// * `level` - The log level to set : LogLevel
 pub fn set_log_level(level: LogLevel) {
     LOG_LEVEL.set(level).unwrap();
 }
-
+/// Returns the current log level
+/// # Returns
+/// * `LogLevel` - The current log level : LogLevel
 pub fn get_log_level() -> LogLevel {
     LOG_LEVEL.get_or_init(|| LogLevel::Debug).clone()
 }
@@ -30,6 +35,38 @@ lazy_static::lazy_static! {
 }
 
 #[allow(unused)]
+/// Starts the server
+/// Will listen to new connections coming to the specified address and port.
+/// <br>
+/// If the PreRequest and PreResponse handlers are provided, they will be used to handle the requests and responses before processing them further.  Tey provide more control over the flow of the server.
+///
+/// # Arguments
+/// * `routes` - The routes to use : Vec<Route>
+/// * `address` - The address to listen on : &str
+/// * `port` - The port to listen on : u32
+/// * `threads` - The number of threads to use : usize
+/// * `log_level` - The log level to use : LogLevel
+/// * `pre_request` - The pre request handler to use : Option<PreRequestHandler>
+/// * `pre_response` - The pre response handler to use : Option<PreResponseHandler>
+///
+/// # Example
+/// ``` rust
+/// server::start(
+///        add_routes!(
+///            Route::new("/", index, HttpMethod::GET),
+///            Route::new("", appliances, HttpMethod::GET),
+///            Route::new("/sleep", sleep, HttpMethod::OPTIONS),
+///            Route::new("/sleep", sleep, HttpMethod::GET),
+///            Route::new("/options", options, HttpMethod::OPTIONS)
+///        ),
+///        "127.0.0.1",
+///        8000,
+///        10,
+///        LogLevel::Info,
+///        Some(PreRequestHandler),
+///        Some(PreResponseHandler),
+///    );
+/// ```
 pub fn start(
     routes: Vec<Route>,
     address: &str,
@@ -74,6 +111,15 @@ pub fn start(
         }
     }
 }
+/// Submits a request to the client
+/// # Arguments
+/// * `stream` - The stream to write to : &TcpStream
+/// * `route` - The route to use : &Route
+/// * `data` - The data to send : Request
+/// * `pre_response` - The pre response handler to use : Option<PreResponseHandler>
+/// # Returns
+/// * `Result<(), std::io::Error>`
+
 fn submit(
     mut stream: &TcpStream,
     route: &Route,
@@ -100,6 +146,21 @@ fn submit(
     }
 }
 
+/// Handles the connection with the clients. If the client sends the request this function will handle it in following flow:
+/// <ol>
+/// <li>Read request string</li>
+/// <li>Parse the request</li>
+/// <li>Execute if provided PreRequest function</li>
+/// <li>Search for appropriate Route mapping</li>
+/// <li>Call the submit function</li>
+/// </ol>
+///
+/// If there is no mapping found, it will return a `404` response or if there is an error it will return a `500` response.
+///
+/// # Arguments
+/// * `stream` - The stream to write to : &TcpStream
+/// * `pre_request` - The pre request handler to use : Option<PreRequestHandler>
+/// * `pre_response` - The pre response handler to use : Option<PreResponseHandler>
 fn handle_connection(
     mut stream: TcpStream,
     pre_request: Option<PreRequestHandler>,
@@ -114,8 +175,6 @@ fn handle_connection(
         .map(|result| result.unwrap())
         .take_while(|line| !line.is_empty())
         .collect::<String>();
-
-    // let request = Request::parse(buf_reader_string);
 
     let request = match pre_request {
         Some(function) => function.call(

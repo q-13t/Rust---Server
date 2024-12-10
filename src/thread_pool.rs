@@ -4,7 +4,26 @@ use std::{
 };
 
 use crate::{server::get_log_level, Logger};
-
+/// # ThreadPool
+///
+/// The WorkerPool is a struct that represents a pool of worker threads. This
+/// pool is responsible for executing the jobs (functions) in a separate thread
+/// context. The pool is created with a specified number of threads which are
+/// started and waiting for jobs to execute. When a job is added to the pool,
+/// the next available worker thread will execute it. The pool also handles the
+/// shutdown of the worker threads when the pool is dropped.
+///
+/// # Arguments
+/// * `size` - The number of threads in the worker pool
+/// # Example
+/// ``` rust
+/// use thread_pool::ThreadPool;
+///
+/// let pool = ThreadPool::new(4);
+/// pool.execute(|| {
+///     // do something
+/// });
+/// ```
 pub struct ThreadPool {
     workers: Vec<Worker>,
     sender: Option<mpsc::Sender<Job>>,
@@ -47,6 +66,19 @@ impl Drop for ThreadPool {
     }
 }
 
+/// # Worker
+/// A worker is a thread that is responsible for executing a single job it is a part of the worker pool.
+///
+/// # Arguments
+/// * `id` - The id of the worker
+/// * `receiver` - The receiver of the worker
+///
+/// # Example
+/// ``` rust
+/// use thread_pool::Worker;
+///
+/// let worker = Worker::new(0, Arc::new(Mutex::new(receiver)));
+/// ```
 struct Worker {
     id: usize,
     thread: Option<thread::JoinHandle<()>>,
@@ -55,7 +87,7 @@ type Job = Box<dyn FnOnce() + Send + 'static>;
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Worker {
-        let logger = Logger::new("THREAD POOL", get_log_level());
+        let logger = Logger::new("POOL", get_log_level());
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
 

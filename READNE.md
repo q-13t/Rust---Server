@@ -1,29 +1,48 @@
-pub mod http;
-pub mod route;
-mod server;
-pub mod thread_pool;
-pub mod transmitters;
-pub mod utils;
+# Rust - Server
 
-use http::http_codes::get_status_line;
-use http::http_codes::StatusCode;
-use http::http_content_types::*;
-use http::http_methods::*;
+This is a simple Rust server aimed to improve my understanding of Rust programming language and web development.
 
-use route::Route;
+## Features
 
-use route_macro_def::add_routes;
-use server::PreRequest;
-use server::PreRequestHandler;
-use server::PreResponse;
-use server::PreResponseHandler;
+- Multithreading
+- Logging
+- Error handling
+- HTTP server
+- Custom routes
+- Custom pre-request and pre-response handlers
+- Static files
+- Flexible Request and Response types
+- RUST API
+- Enum definitions
 
-use std::{fs, thread};
-use transmitters::request::*;
-use transmitters::response::*;
-use utils::logger::*;
+## File Structure
 
-extern crate route_macro_def;
+```rust
+src
+├── main.rs
+├── http
+│   ├── content_type.rs
+│   ├── http_content_types.rs
+│   ├── http_methods.rs
+│   ├── http_codes.rs
+│   ├── http_version.rs
+│   └── mod.rs
+├── transmitters
+│   ├── mod.rs
+│   └── request.rs
+│   └── response.rs
+├── utils
+│   └── mod.rs
+│   └── logger.rs
+├── route.rs
+├── server.rs
+├── thread_pool.rs
+└── types.rs
+```
+
+# Sample Usage
+
+```rust
 
 const LOG_LEVEL: LogLevel = LogLevel::Info;
 
@@ -115,12 +134,15 @@ fn main() {
             Route::new("/sleep", sleep, HttpMethod::OPTIONS),
             Route::new("/sleep", sleep, HttpMethod::GET),
             Route::new("/options", options, HttpMethod::OPTIONS)
-        ),
-        "127.0.0.1",
-        8000,
-        10,
-        LOG_LEVEL,
-        Some(PreRequestHandler),
-        Some(PreResponseHandler),
+        ), // Add your routes here
+        "127.0.0.1", // The IP address to listen on
+        8000, // The port to listen on
+        10, // The number of threads to use
+        LOG_LEVEL, // The log level to use 
+        Some(PreRequestHandler), // The pre request handler to use
+        Some(PreResponseHandler), // The pre response handler to use
     );
 }
+```
+
+# Any suggestions or contributions are welcome
