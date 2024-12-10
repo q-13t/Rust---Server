@@ -4,6 +4,31 @@ use crate::http::{
     http_codes::*, http_content_types::ContentType, http_cookies::*, http_headers::*,
 };
 
+/// Represents a response
+/// # Arguments
+/// * `status` - The status of the response
+/// * `resp_type` - The type of the response
+/// * `headers` - The headers of the response
+/// * `cookies` - The cookies of the response
+/// * `data` - The data of the response
+///
+/// # Returns
+/// * `Response` - The response object
+///
+/// # Example
+/// ```
+/// use http::http_codes::StatusCode;
+/// use http::http_content_types::ContentType;  
+/// use http::http_headers::Header;
+///     
+/// let response = Response::new(
+///     StatusCode::Ok,
+///     ContentType::ApplicationJson,
+///     Vec::new(),
+///     Vec::new(),
+///     '{"token": true"}'.to_string(),
+/// );
+/// ```
 pub struct Response {
     pub status: StatusCode,
     pub content_type: ContentType,
@@ -50,38 +75,78 @@ impl Response {
         )
     }
 
+    /// Sets the content type of the response
+    /// # Arguments
+    /// * `content_type` - The content type of the response : ContentType
     pub fn set_content_type(&mut self, content_type: ContentType) -> &mut Self {
         self.content_type = content_type;
         self
     }
+    /// Gets the content type of the response
+    /// # Returns
+    /// * `ContentType` - The content type of the response: ContentType
     pub fn get_content_type(&self) -> ContentType {
         self.content_type
     }
-
+    /// Sets the status of the response
+    /// # Arguments
+    /// * `status` - The status of the response : StatusCode
+    /// # Returns
+    /// * `response` - The response object: Response
     pub fn set_status(&mut self, status: StatusCode) -> &mut Self {
         self.status = status;
         self
     }
+    /// Gets the status of the response
+    /// # Arguments
+    /// * `headers` - The status of the response : Vec<Header>
+    /// # Returns
+    /// * `response` - The status of the response: Response
     pub fn set_headers(&mut self, headers: Vec<Header>) -> &mut Self {
         self.headers = headers;
         self
     }
+    /// Adds a header to the response
+    /// # Arguments
+    /// * `header` - The header to add : Header
+    /// # Returns
+    /// * `response` - The response object: Response
     pub fn add_header(&mut self, header: Header) -> &mut Self {
         self.headers.push(header);
         self
     }
+    /// Sets the cookies of the response
+    /// # Arguments
+    /// * `cookies` - The cookies of the response : Vec<Cookie>
+    /// # Returns
+    /// * `response` - The response object: Response
     pub fn set_cookies(&mut self, cookies: Vec<Cookie>) -> &mut Self {
         self.cookies = cookies;
         self
     }
+    /// Adds a cookie to the response
+    /// # Arguments
+    /// * `cookie` - The cookie to add : Cookie
+    /// # Returns
+    /// * `response` - The response object: Response
     pub fn add_cookie(&mut self, cookie: Cookie) -> &mut Self {
         self.cookies.push(cookie);
         self
     }
+    /// Sets the data of the response
+    /// # Arguments
+    /// * `data` - The data of the response : String
+    /// # Returns
+    /// * `response` - The response object: Response
     pub fn set_data(&mut self, data: String) -> &mut Self {
         self.data = data;
         self
     }
+    /// Gets a header from the response
+    /// # Arguments
+    /// * `key` - The key of the header : &str
+    /// # Returns
+    /// * `Option<Header>` - The header: Option<Header>
     pub fn get_header(&self, key: &str) -> Option<Header> {
         for header in &self.headers {
             if header.key == key {
@@ -90,6 +155,11 @@ impl Response {
         }
         None
     }
+    /// Gets a cookie from the response
+    /// # Arguments
+    /// * `key` - The key of the cookie : &str
+    /// # Returns
+    /// * `Option<Cookie>` - The cookie: Option<Cookie>
     pub fn get_cookie(&self, key: &str) -> Option<Cookie> {
         for cookie in &self.cookies {
             if cookie.key == key {
@@ -98,7 +168,11 @@ impl Response {
         }
         None
     }
-
+    /// Prepares the response:
+    /// <br>
+    /// Packs the status, headers, cookies and data into a string and converts the response into a string to be sended
+    /// # Returns
+    /// * `String` - The response: String
     pub fn prepare(&self) -> String {
         let cookies_str = self
             .cookies

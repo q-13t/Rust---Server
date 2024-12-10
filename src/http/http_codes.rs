@@ -66,6 +66,13 @@ const STATUSES: &[(u16, &str)] = &[
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[allow(unused)]
+/// HTTP status codes
+/// # Example
+/// ``` rust
+/// use http::http_codes::StatusCode;
+/// let status_code = StatusCode::Ok;
+/// assert_eq!(status_code, StatusCode::Ok);
+/// ```
 pub enum StatusCode {
     Continue = 100,
     SwitchingProtocols = 101,
@@ -136,6 +143,11 @@ impl Display for StatusCode {
     }
 }
 
+/// Returns the status line for a given status code
+/// # Arguments
+/// * `status` - The status code : StatusCode
+/// # Returns
+/// * `String` - The status line : String
 pub fn get_status_line(status: StatusCode) -> String {
     STATUSES
         .binary_search_by(|&(code, _)| code.cmp(&(status as u16)))

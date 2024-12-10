@@ -12,6 +12,26 @@ const METHODS: &[(u16, &str)] = &[
     (8, "TRACE"),
 ];
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
+/// HTTP methods
+/// # Example
+/// ```rust
+/// use http::http_methods::HttpMethod;
+/// use http::request::Request;
+/// use http::response::Response;
+/// use route::Route;
+///
+/// let route = Route::new("/", index, HttpMethod::GET);
+///
+/// fn index(request: Request) -> Response {
+///     Response::new(
+///         StatusCode::Ok,
+///         ContentType::TextHtmlCharsetUtf8,
+///         Vec::new(),
+///         Vec::new(),
+///         fs::read_to_string("./static/index.html").unwrap(),
+///     )
+/// }
+/// ```
 pub enum HttpMethod {
     GET = 0,
     POST = 1,

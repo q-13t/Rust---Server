@@ -98,6 +98,13 @@ const CONTENT_TYPES: &[(u16, &str)] = &[
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 #[allow(unused)]
+/// HTTP content types
+/// # Example
+/// ``` rust
+/// use http::http_content_types::ContentType;
+/// let content_type = ContentType::TextHtmlCharsetUtf8;
+/// assert_eq!(content_type, ContentType::TextHtmlCharsetUtf8);
+/// ```
 pub enum ContentType {
     TextHtmlCharsetUtf8 = 0,
     TextPlainCharsetUtf8 = 1,
@@ -181,6 +188,17 @@ pub enum ContentType {
     ApplicationX7zCompressed = 79,
 }
 
+/// Get the content type from the code
+/// # Arguments
+/// * `value` - The content type code : ContentType
+/// # Returns
+/// * `String` - The content type : String
+/// # Example
+/// ``` rust
+/// use http::http_content_types::get_type;
+/// let content_type = get_type(ContentType::TextHtmlCharsetUtf8);
+/// assert_eq!(content_type, "text/html; charset=utf-8");
+/// ```
 pub fn get_type(value: ContentType) -> String {
     CONTENT_TYPES
         .binary_search_by(|(code, _)| code.cmp(&(value as u16)))
@@ -190,10 +208,11 @@ pub fn get_type(value: ContentType) -> String {
 }
 
 impl ContentType {
-    ///
     /// Parse the file name to get the content type
-    /// <br>
-    /// value: the file name may be the full path
+    /// # Arguments
+    /// * `value` - The file name : &str
+    /// # Returns
+    /// * `ContentType` - The content type : ContentType
     pub fn parse_file_name(value: &str) -> ContentType {
         let logger: Logger = Logger {
             c_name: "http_content_types",

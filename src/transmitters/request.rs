@@ -3,6 +3,26 @@ use crate::server;
 use crate::utils::logger::Logger;
 use std::fmt::Display;
 
+/// Represents a request
+/// # Arguments
+/// * `method` - The method of the request : HttpMethod
+/// * `path` - The path of the request : String
+/// * `path_variables` - The path variables of the request : Vec<String>
+/// * `headers` - The headers of the request : Vec<Header>
+/// * `cookies` - The cookies of the request : Vec<Cookie>
+/// * `data` - The data of the request : String
+///
+/// # Example
+/// ```
+/// let request = Request::new(
+///     HttpMethod::GET,
+///     "/".to_string(),
+///     Vec::new(),
+///     Vec::new(),
+///     Vec::new(),
+///     "Hello world".to_string(),
+/// );
+/// ```
 pub struct Request {
     pub method: HttpMethod,
     pub path: String,
@@ -32,6 +52,15 @@ impl Request {
         }
     }
 
+    /// Parse a request from a string
+    /// # Arguments
+    /// * `payload` - The payload of the request : String
+    /// # Returns
+    /// * `Request` - The request
+    /// # Example
+    /// ```
+    /// let request = Request::parse("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n".to_string());
+    /// ```
     pub fn parse(payload: String) -> Request {
         let logger: Logger = Logger {
             c_name: "Request",
@@ -96,7 +125,9 @@ impl Request {
             data: data.trim_end().to_string(),
         }
     }
-
+    /// Create an empty request
+    /// # Returns
+    /// * `Request` - The empty request
     pub fn get_empty() -> Request {
         Request::new(
             HttpMethod::GET,
@@ -108,13 +139,26 @@ impl Request {
         )
     }
 
+    /// Set the path variables
+    /// # Arguments
+    /// * `path_variables` - The path variables of the request : Vec<String>
+    /// # Returns
+    /// * `Request` - The request
     pub fn set_path_variables(&mut self, path_variables: Vec<String>) -> &mut Self {
         self.path_variables = path_variables;
         self
     }
+    /// Get the path variables
+    /// # Returns
+    /// * `Vec<String>` - The path variables of the request : Vec<String>
     pub fn get_path_variables(&self) -> Vec<String> {
         self.path_variables.clone()
     }
+    /// Get a header from the request
+    /// # Arguments
+    /// * `key` - The key of the header : &str
+    /// # Returns
+    /// * `Option<Header>` - The header : Option<Header>
     pub fn get_header(&self, key: &str) -> Option<Header> {
         for header in &self.headers {
             if header.key == key {
@@ -123,6 +167,11 @@ impl Request {
         }
         None
     }
+    /// Get a cookie from the request
+    /// # Arguments
+    /// * `key` - The key of the cookie : &str
+    /// # Returns
+    /// * `Option<Cookie>` - The cookie : Option<Cookie>
     pub fn get_cookie(&self, key: &str) -> Option<Cookie> {
         for cookie in &self.cookies {
             if cookie.key == key {
@@ -131,30 +180,70 @@ impl Request {
         }
         None
     }
+
+    /// Set the method of the request
+    /// # Arguments
+    /// * `method` - The method of the request : HttpMethod
+    /// # Returns
+    /// * `Request` - The request
     pub fn set_method(&mut self, method: HttpMethod) -> &mut Self {
         self.method = method;
         self
     }
+    /// Set the path of the request
+    /// # Arguments
+    /// * `path` - The path of the request : String
+    /// # Returns
+    /// * `Request` - The request
     pub fn set_path(&mut self, path: String) -> &mut Self {
         self.path = path;
         self
     }
+    /// Set the headers of the request
+    ///     
+    /// # Arguments
+    /// * `headers` - The headers of the request : Vec<Header>
+    /// # Returns
+    ///     * `Request` - The request
     pub fn set_headers(&mut self, headers: Vec<Header>) -> &mut Self {
         self.headers = headers;
         self
     }
+    /// Add a header to the request
+    /// # Arguments
+    /// * `header` - The header to add : Header
+    /// # Returns
+    /// * `Request` - The request
     pub fn add_header(&mut self, header: Header) -> &mut Self {
         self.headers.push(header);
         self
     }
+
+    /// Set the cookies of the request
+    /// # Arguments
+    /// * `cookies` - The cookies of the request : Vec<Cookie>
+    /// # Returns
+    /// * `Request` - The request
     pub fn set_cookies(&mut self, cookies: Vec<Cookie>) -> &mut Self {
         self.cookies = cookies;
         self
     }
+
+    /// Add a cookie to the request
+    /// # Arguments
+    /// * `cookie` - The cookie to add : Cookie
+    /// # Returns
+    /// * `Request` - The request
     pub fn add_cookie(&mut self, cookie: Cookie) -> &mut Self {
         self.cookies.push(cookie);
         self
     }
+
+    /// Set the data of the request
+    /// # Arguments
+    /// * `data` - The data of the request : String
+    /// # Returns
+    /// * `Request` - The request
     pub fn set_data(&mut self, data: String) -> &mut Self {
         self.data = data;
         self
