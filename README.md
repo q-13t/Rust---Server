@@ -14,6 +14,7 @@ This is a simple Rust server aimed to improve my understanding of Rust programmi
 - Flexible Request and Response types
 - RUST API
 - Enum definitions
+- CRUD capabilites
 
 ## File Structure
 
